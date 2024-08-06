@@ -28,13 +28,25 @@ public class BatchApexErrorEventTriggerHelper {
             [SELECT id, ApexClass.Name FROM AsyncApexJob WHERE Id IN :asyncApexJobIds]
         );
 
+        List<Task> taskList = new List<Task>();
         for (BatchApexErrorEvent evt : events) {
             // Only handle events for a particular job
             if (jobs.get(evt.AsyncApexJobId).ApexClass.Name == 'PilotRatingBatch') {
                 for (String item: event.JobScope.split(',')) {
                     // make some processing here
+                    Task taskItem = new Task();
+                    taskItem.WhatId = (Id) item;
+                    taskItem.subject = evt.ExceptionType;
+                    taskItem.Description = 'Error logged by Batch Apex class',
+                    taskList.add(taskItem);
                 }
             }
+        }
+
+        try {
+            insert taskList;
+        } catch(Exception ex) {
+            System.debug('Exception while creating task ' + ex.getMessage());
         }
     }*/
 }
